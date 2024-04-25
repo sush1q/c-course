@@ -32,22 +32,34 @@ class TArray {
 		const bool printArray(void) const;
 
 	private:
-		void init(int*, int);
+		const bool init(const int*, const int);
 		const bool validateIndex(int) const;
-		const bool setNewM(int*);
 		
 		int n;
 		int *m;
 };
 
-void TArray::init (int *m, int n) {
-	TArray::n = n;
-	TArray::m = new int[n];
-	if (m==NULL) {
-		for (int i=0; i<n; i++) TArray::m[i] = 0;
+const bool TArray::init (const int *m, const int n) {
+	if (TArray::n == n) return false;
+
+	int *tmp = new int[n];
+	if (tmp==NULL) return false;
+
+	if (m==NULL && TArray::m == NULL) {
+		for (int i=0; i<n; i++) tmp[i] = 0;
+	} else if (m==NULL && TArray::m != NULL) {
+		for (int i=0; i<n; i++) {
+			tmp[i] = TArray::m[i];
+			if (i>=TArray::n) tmp[i] = 0;
+		}
 	} else {
-		for (int i=0; i<n; i++) TArray::m[i] = m[i];
-	}	
+		for (int i=0; i<n; i++) tmp[i] = m[i];
+	}
+
+	if (TArray::m != NULL) delete []m;
+	TArray::n = n;
+	TArray::m = tmp;
+	return true;
 }
 
 TArray::TArray () {
@@ -71,11 +83,6 @@ TArray::TArray (const TArray &val) {
 	n=val.n;
 }
 
-const bool TArray::setNewM (int *new_m) {
-	delete []m;
-	m=new_m;
-}
-
 const bool TArray::validateIndex (int index) const {
 	if ((index>=0)&&(index<n)) return true;
 	return false;
@@ -94,11 +101,8 @@ const bool TArray::printArray (void) const {
 }
 
 const bool TArray::addItem (const int data) {
-	int *new_m=new int[++n];
-	if (new_m == NULL) {n--; return false;}
-	for (int i=0; i<n-1; i++) new_m[i]=m[i];
-	new_m[n-1]=data;
-	setNewM(new_m);
+	init(NULL, n+1);
+	m[n-1]=data;
 	return true;
 }
 
@@ -110,45 +114,35 @@ const bool TArray::setItem (const int i, const int data) {
 
 const bool TArray::insertItem(const int index, const int data) {
 	if (!validateIndex(index)) return false;
-	int *new_m=new int[++n];
-	int new_i=0;
-	if (new_m == NULL) {n--; return false;}
-	for (int i=0; i<n; i++) {
-		if (i==index) new_m[i] = data, new_i++;
-		new_m[i+new_i] = m[i];
+	int tmp1,tmp2;
+	init(NULL, n+1);
+	
+	tmp1 = m[index];
+	m[index] = data;
+
+	for (int i=index+1; i<n; i++) {
+		tmp2 = m[i];
+		m[i] = tmp1;
 	}
-	setNewM(new_m);
+
 	return true;
 }
 
 const bool TArray::addArray(const int *arr, const int size) {
 	if (size<0) return false;
-	int new_n = n+size;
-	int *new_m=new int[new_n];
-	if (new_m == NULL) return false;
-	
-	for (int i=0; i<n; i++) new_m[i] = m[i];
-	if (m==NULL) {
-		for (int i=0; i<size; i++) new_m[n+i] = 0;
-	} else {
-		for (int i=0; i<size; i++) new_m[n+i] = arr[i];
+	int old_n = n;
+	init(NULL, n+size);
+
+	if (arr!=NULL) {
+		for (int i=0; i<size; i++) m[old_n+i] = arr[i];
 	}
-	
-	setNewM(new_m);
-	n=new_n;
+
 	return true;
 }
 
 const bool TArray::setArray(const int *arr, const int size) {
 	if (size<0) return false;
-	int *new_m=new int[size];
-	if (new_m == NULL) return false;
-
-	for (int i=0; i<size; i++) new_m[i] = arr[i];
-
-	setNewM(new_m);
-	n=size;
-	return true;
+	return init(arr, size);
 }
 
 const bool TArray::sort(void) {
@@ -209,7 +203,6 @@ int main(void) {
 	
 	TArray arr3 = arr1 + arr2;
 	arr3.printArray();
-	
 
 	return 0;
 }
