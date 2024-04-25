@@ -40,8 +40,6 @@ class TArray {
 };
 
 const bool TArray::init (const int *m, const int n) {
-	if (TArray::n == n) return false;
-
 	int *tmp = new int[n];
 	if (tmp==NULL) return false;
 
@@ -56,7 +54,7 @@ const bool TArray::init (const int *m, const int n) {
 		for (int i=0; i<n; i++) tmp[i] = m[i];
 	}
 
-	if (TArray::m != NULL) delete []m;
+	if (TArray::m != NULL) delete []TArray::m;
 	TArray::n = n;
 	TArray::m = tmp;
 	return true;
@@ -79,8 +77,7 @@ TArray::~TArray () {
 }
 
 TArray::TArray (const TArray &val) {
-	m=val.m;
-	n=val.n;
+	init(val.m, val.n);
 }
 
 const bool TArray::validateIndex (int index) const {
@@ -94,10 +91,11 @@ const int TArray::getItem (const int i) const {
 }
 
 const bool TArray::printArray (void) const {
-	for (int i=0; i<this->length(); i++) {
-		cout << this->getItem(i) << " ";
+	for (int i=0; i<n; i++) {
+		cout << m[i] << " ";
 	}
 	cout << endl;
+	return true;
 }
 
 const bool TArray::addItem (const int data) {
@@ -157,6 +155,7 @@ const bool TArray::sort(void) {
             }
         }
     }
+    return true;
 }
 
 const int TArray::findItem (const int elem) const {
@@ -173,12 +172,11 @@ const TArray TArray::operator+ (const TArray &rval) const {
 }
 
 const TArray TArray::operator= (const TArray &rval) {
-	m=rval.m;
+	init(rval.m, rval.n);
 	return *this;
 }
 
 int main(void) {
-	
 	int m[] = {1,2,3,4,5};
 	int unsorted[] = {5,2,3,1,4};
 	TArray arr1(m, 5);
@@ -190,7 +188,7 @@ int main(void) {
 	arr1.printArray();
 	arr1.insertItem(5, 6);
 	arr1.printArray();
-	
+
 	TArray arr2(arr1);
 	arr2.printArray();
 	arr2.addArray(m, 5);
@@ -199,8 +197,9 @@ int main(void) {
 	arr2.printArray();
 	arr2.sort();
 	arr2.printArray();
-	cout << arr2.findItem(2) << endl;
-	
+	cout << arr2.findItem(3) << endl;
+
+	(arr1 + arr2).printArray();
 	TArray arr3 = arr1 + arr2;
 	arr3.printArray();
 
